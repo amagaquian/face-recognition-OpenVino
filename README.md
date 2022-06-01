@@ -1,10 +1,11 @@
-# car-pedestrian-detection
+# face-recognition-openvino
 
 requerimients:
 
 - opencv-python
 - openvino
 - imgutils
+- numpy
 
 execution:
 
