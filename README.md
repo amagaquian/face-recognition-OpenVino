@@ -9,4 +9,4 @@ requerimients:
 
 execution:
 
-python3 car-pedestrian-detection.py
+python3 face-recognition.py
