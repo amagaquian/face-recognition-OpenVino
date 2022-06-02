@@ -115,8 +115,11 @@ def main():
             car_pedestrian_input_blob,
             car_pedestrian_output_blob
         )
+       
+      
         if cv2.waitKey(10) == 27:  # exit if Escape is hit
             break
+    
 
     """ while success:
         
