@@ -4,8 +4,10 @@ import numpy as np
 from imutils import paths, resize
 from openvino.inference_engine import IECore
 from datetime import datetime
+from scipy import spatial
 
 IMAGES_PATH = "images"
+TEST_PATH = "test_images"
 BLUE = (255, 0, 0)
 RED = (0, 0, 255)
 
@@ -42,11 +44,14 @@ def face_recognition(
         inputs={face_recognition_input_blob: input_image}
     ).get(face_recognition_output_blob)
 
-    print("RESULTS-----------")
-    print(face_recognition_results)
+    return [x[0][0] for x in list(face_recognition_results[0])]
 
-    showImg = imutils.resize(frame, height=600)
-    cv2.imshow("showImg", showImg)
+
+def face_comparison(face_dict, name, new_face_vector):
+    for key, vector in face_dict.items():
+        result = 1 - spatial.distance.cosine(vector, new_face_vector)
+        print(f"{name} Comparison with {key}: {result}")
+    print("-----------------")
 
 
 def main():
@@ -62,19 +67,41 @@ def main():
     face_recognition_input_blob = next(iter(face_recognition_execution_net.input_info))
     face_recognition_output_blob = next(iter(face_recognition_execution_net.outputs))
     face_recognition_neural_net.batch_size = 1
+    faces_dict = {}
 
     for imagePath in paths.list_images(IMAGES_PATH):
         print(imagePath)
+        name = imagePath.split("/")[1].split(".")[0]
+        print(name)
         img = cv2.imread(imagePath)
         if img is None:
             continue
-        face_recognition(
+        faces_dict[name] = face_recognition(
             img,
             face_recognition_neural_net,
             face_recognition_execution_net,
             face_recognition_input_blob,
             face_recognition_output_blob,
         )
+
+    for imagePath in paths.list_images(TEST_PATH):
+        img = cv2.imread(imagePath)
+        if img is None:
+            continue
+        name = imagePath.split("/")[1].split("_")[0]
+        vector = face_recognition(
+            img,
+            face_recognition_neural_net,
+            face_recognition_execution_net,
+            face_recognition_input_blob,
+            face_recognition_output_blob,
+        )
+
+        face_comparison(faces_dict, name, vector)
+
+        showImg = imutils.resize(img, height=600)
+        cv2.imshow("showImg", showImg)
+
         cv2.waitKey(0)
         if cv2.waitKey(10) == 27:  # exit if Escape is hit
             break
